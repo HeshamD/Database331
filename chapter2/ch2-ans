@@ -1,0 +1,130 @@
+/*
+    find all employees that sold orders for customer 71 and has purchased more than one order in a calandar year.
+    Show the actual order date
+*/
+USE TSQLV4
+GO
+SELECT empid, YEAR(orderdate) AS orderyear, COUNT(*) AS numorders
+FROM Sales.Orders 
+WHERE custid = 71
+GROUP BY empid, YEAR(orderdate)
+HAVING COUNT(*) > 1
+ORDER BY empid, orderyear;
+
+USE Northwinds2022TSQLV7
+GO
+
+SELECT EmployeeId, YEAR(orderdate) AS orderyear, COUNT(*) AS numorders
+FROM Sales.[Order]
+WHERE CustomerId = 71
+GROUP BY EmployeeId, YEAR(orderdate)
+HAVING COUNT(*) > 1
+ORDER BY EmployeeId, orderyear;
+
+
+/*
+    show orderid, CustomerId, EmployeeId, orderdate, freight from the order table
+*/
+SELECT orderid, CustomerId, EmployeeId, orderdate, freight
+FROM Sales.[Order];
+
+/*
+    show orderid, EmployeeId, orderdate, freight for cusotmer 71
+*/
+SELECT orderid, EmployeeId, orderdate, freight
+FROM Sales.[Order]
+WHERE CustomerId = 71;
+
+
+---------------------------------------------------------------------
+-- The GROUP BY Clause
+/* 
+    it's used to group rows in a result set by several columns, used often with 
+        aggregate functions 
+    We can use the GROUP BY clause to group the sales by product and region 
+        and calculate the total sales amount for each group 
+*/
+---------------------------------------------------------------------
+
+/*
+    show customer 71 with orders that placed by years as 'orderyear'
+    -- hint group by used to group the customersId with date by year
+*/
+SELECT CustomerId, YEAR(orderdate) AS orderyear
+FROM Sales.[Order]
+WHERE CustomerId = 71
+GROUP BY CustomerId, YEAR(orderdate);
+
+/*
+    show customerid = 71 with the order date year.
+    with counting all the number of orders 
+*/
+SELECT
+  EmployeeId,
+  YEAR(orderdate) AS orderyear,
+  SUM(freight) AS totalfreight,
+  COUNT(*) AS numorders
+FROM Sales.[Order]
+WHERE CustomerId = 71
+GROUP BY EmployeeId, YEAR(orderdate);
+
+---------------------------------------------------------------------
+-- The HAVING Clause
+
+/*
+
+is conjunction with the GROUP BY  clause to filter the results of a group query based
+on the results of an aggregate function
+
+
+The HAVING clause allows you to specify a condition that must be met by the groups in the result set. 
+This condition is based on the values calculated by the aggregate functions in the SELECT statement.
+*/
+---------------------------------------------------------------------
+/*
+    show employee = 71, with the year of the order date AS orderyear
+    that the number of orders is > 1
+    where an employee made more than one order in a given year.
+*/
+SELECT EmployeeId, YEAR(orderdate) AS orderyear
+FROM Sales.[Order]
+WHERE CustomerId = 71
+GROUP BY EmployeeId, YEAR(orderdate)
+HAVING COUNT(*) > 1;
+
+---------------------------------------------------------------------
+-- The SELECT Clause
+---------------------------------------------------------------------
+/*
+    select customerid, orderdate shown as 'orderyear' with counting all orders 
+    that grouping the employeeID with number of orders is > 1
+*/
+
+SELECT EmployeeId, YEAR(orderdate) AS orderyear, COUNT(*) AS numorders
+FROM Sales.[Order]
+WHERE CustomerId = 71
+GROUP BY EmployeeId, YEAR(orderdate)
+HAVING COUNT(*) > 1;
+
+/*
+    show orders id with order data year > 2015 only as 'orderyear'.
+*/
+
+SELECT orderid, YEAR(orderdate) AS orderyear
+FROM Sales.[Order]
+WHERE YEAR(orderdate) > 2015;
+
+/*
+    show a unique list of employees Id and the corresponding order years
+    for all orders made by the customer with the ID of 71
+*/
+
+SELECT DISTINCT EmployeeId, YEAR(orderdate) AS orderyear
+FROM Sales.[Order]
+WHERE CustomerId = 71;
+
+/*
+    show all the date for shippers table
+*/
+SELECT *
+FROM Sales.Shipper;
