@@ -88,29 +88,11 @@ WHERE custid = 71
 GROUP BY empid, YEAR(orderdate)
 HAVING COUNT(*) > 1;
 
-/*
-SELECT orderid, YEAR(orderdate) AS orderyear
-FROM Sales.Orders
-WHERE orderyear > 2015;
-*/
 
 SELECT orderid, YEAR(orderdate) AS orderyear
 FROM Sales.Orders
 WHERE YEAR(orderdate) > 2015;
 
-/*
-SELECT empid, YEAR(orderdate) AS orderyear, COUNT(*) AS numorders
-FROM Sales.Orders
-WHERE custid = 71
-GROUP BY empid, YEAR(orderdate)
-HAVING numorders > 1;
-*/
-
-SELECT empid, YEAR(orderdate) AS orderyear, COUNT(*) AS numorders
-FROM Sales.Orders
-WHERE custid = 71
-GROUP BY empid, YEAR(orderdate)
-HAVING COUNT(*) > 1;
 
 -- Listing 2-2: Query Returning Duplicate Rows
 SELECT empid, YEAR(orderdate) AS orderyear
@@ -125,12 +107,6 @@ WHERE custid = 71;
 SELECT *
 FROM Sales.Shippers;
 
-/*
-SELECT orderid,
-  YEAR(orderdate) AS orderyear,
-  orderyear + 1 AS nextyear
-FROM Sales.Orders;
-*/
 
 SELECT orderid,
   YEAR(orderdate) AS orderyear,
