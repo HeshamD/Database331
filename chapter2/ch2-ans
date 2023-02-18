@@ -128,3 +128,459 @@ WHERE CustomerId = 71;
 */
 SELECT *
 FROM Sales.Shipper;
+
+/*
+    show all the orders id for years as 'orderyear' and it's next year 'nextyear'
+*/
+SELECT orderid,
+  YEAR(orderdate) AS orderyear,
+  YEAR(orderdate) + 1 AS nextyear
+FROM Sales.[Order];
+
+---------------------------------------------------------------------
+-- The ORDER BY Clause
+---------------------------------------------------------------------
+/*
+    show emplyeeid, the order date as 'order Year', count all of these orders
+    where customer id 71 and the count of orders (using COUNT function) as numorders.
+    Groups the results by EmployeeId and year of the order date.
+    Filters the results to only include those with more than one order.
+    Orders the results by EmployeeId and orderyear in ascending order.
+*/
+
+SELECT EmployeeId, YEAR(orderdate) AS orderyear, COUNT(*) AS numorders
+FROM Sales.[Order]
+WHERE CustomerId = 71
+GROUP BY EmployeeId, YEAR(orderdate)
+HAVING COUNT(*) > 1
+ORDER BY EmployeeId, orderyear;
+
+/*
+    show customers id,first and last names, and the country
+    order them by the HireDate.
+*/
+
+SELECT EmployeeId, EmployeeLastName, EmployeeFirstName, EmployeeCountry
+FROM HumanResources.Employee e
+ORDER BY e.HireDate;
+
+/*
+    show the employees country without duplicates countries orderthem by the 
+    employee id
+*/
+
+SELECT DISTINCT EmployeeCountry, EmployeeId
+FROM HumanResources.Employee
+ORDER BY EmployeeId;
+
+---------------------------------------------------------------------
+-- The TOP and OFFSET-FETCH Filters
+---------------------------------------------------------------------
+
+---------------------------------------------------------------------
+-- The TOP Filter
+---------------------------------------------------------------------
+
+/*  
+    show only 5 orders in descending order of the order date.By showing the
+    orderid, orderdate, custid, empid 
+
+    TOP(num) : 
+*/
+SELECT TOP (5) orderid, orderdate, CustomerId, EmployeeId
+FROM Sales.[Order]
+ORDER BY orderdate DESC;
+
+/*
+    from the orders table, fetch the top 1 percent of records sorted by orderDate descending order
+    showing orderid, orderdate, CustomerId, EmployeeId
+*/
+
+SELECT TOP (1) PERCENT orderid, orderdate, CustomerId, EmployeeId
+FROM Sales.[Order]
+ORDER BY orderdate DESC;
+
+/*
+    from the order table select the top 5 records sorted by orderdate and order id in Descending order
+    showing the orderid, orderdate, CustomerId, EmployeeId
+*/
+
+SELECT TOP (5) orderid, orderdate, CustomerId, EmployeeId
+FROM Sales.[Order]
+ORDER BY orderdate DESC, orderid DESC;
+
+/*
+    from the order table select the top 5 records sorted by orderdate in Descending order
+    including all the records that have the same orderDate
+    showing the orderid, orderdate, CustomerId, EmployeeId
+*/
+
+SELECT TOP (5) WITH TIES orderid, orderdate, CustomerId, EmployeeId
+FROM Sales.[Order]
+ORDER BY orderdate DESC;
+
+
+
+---------------------------------------------------------------------
+-- The OFFSET-FETCH Filter
+---------------------------------------------------------------------
+
+-- OFFSET-FETCH
+/*
+    OFFSET-FETCH : 
+        it's a clause to fetch a specific number of rows and OFFSET is going to skip a num
+        of rows till it reach the fetched sized of records
+
+    from the order table show orderid, orderdate, CustomerId, EmployeeId
+    ordering the records by orderdate, orderid
+    showing 25 rows starting skipping the first 50 row
+*/
+SELECT orderid, orderdate, CustomerId, EmployeeId
+FROM Sales.[Order]
+ORDER BY orderdate, orderid
+OFFSET 50 ROWS 
+FETCH NEXT 25 ROWS ONLY;
+
+---------------------------------------------------------------------
+-- A Quick Look at Window Functions
+---------------------------------------------------------------------
+/*
+    
+*/
+SELECT orderid, custid, val,
+  ROW_NUMBER() OVER(PARTITION BY custid
+                    ORDER BY val) AS rownum
+FROM Sales.OrderValues
+ORDER BY custid, val;
+
+
+---------------------------------------------------------------------
+-- Predicates and Operators
+---------------------------------------------------------------------
+
+-- Predicates: IN, BETWEEN, LIKE
+
+/*
+    from the order table show the following records orderid, EmployeeId, orderdate 
+    for order id 10248, 10249, 10250
+*/
+SELECT orderid, EmployeeId, orderdate
+FROM Sales.[Order]
+WHERE orderid IN(10248, 10249, 10250);
+
+/*
+    from the order table show the following records orderid, EmployeeId, orderdate 
+    for order id between 10300 and 10310
+*/
+SELECT orderid, EmployeeId, orderdate
+FROM Sales.[Order]
+WHERE orderid BETWEEN 10300 AND 10310;
+
+/*
+    from the employee table show the following records EmployeeId, EmployeeFirstName, EmployeeLastName
+    That the lastName of the employee must start with D
+*/
+SELECT EmployeeId, EmployeeFirstName, EmployeeLastName
+FROM HumanResources.Employee
+WHERE EmployeeLastName LIKE N'D%';
+
+-- Comparison operators: =, >, <, >=, <=, <>, !=, !>, !<
+/*
+    from the orders table show the following records orderid, empid, orderdate
+    that the orderdate is bigger than or equal that date 2016/01/01
+*/ 
+SELECT orderid, EmployeeId, orderdate
+FROM Sales.[Order]
+WHERE orderdate >= '20160101';
+
+/*
+    from the order table show the following records orderid, EmployeeId, orderdate
+    that the orderdate is bigger than 2016/01/01 AND the employeeID is amonge these 
+    (1,3,5)
+*/
+-- Logical operators: AND, OR, NOT
+SELECT orderid, EmployeeId, orderdate
+FROM Sales.[Order]
+WHERE orderdate >= '20160101'
+  AND EmployeeId IN(1, 3, 5);
+
+/*
+    from the OrderDetail show the following records :
+    orderid, productid, Quantity, unitprice, DiscountPercentage
+    with showing this equation Quantity * unitprice * (1 - DiscountPercentage) named as val
+    
+*/
+-- Arithmetic operators: +, -, *, /, %
+SELECT orderid, productid, Quantity, unitprice, DiscountPercentage,
+  Quantity * unitprice * (1 - DiscountPercentage) AS val
+FROM Sales.OrderDetail;
+
+-- Operator Precedence
+
+-- AND precedes OR
+/*
+    from the order table show the following records : 
+    orderid, CustomerId, EmployeeId, orderdate
+    that the customerId = 1
+    and the customer id is among 1,3,5
+    OR
+    and the customerId id = 85 AND EmployeeId is among 2,4,6 
+*/
+SELECT orderid, CustomerId, EmployeeId, orderdate
+FROM Sales.[Order]
+WHERE
+        CustomerId = 1
+    AND EmployeeId IN(1, 3, 5)
+    OR  CustomerId = 85
+    AND EmployeeId IN(2, 4, 6);
+-- Equivalent to
+SELECT orderid, CustomerId, EmployeeId, orderdate
+FROM Sales.[Order]
+WHERE
+      ( CustomerId = 1
+        AND EmployeeId IN(1, 3, 5) )
+    OR
+      ( CustomerId = 85
+        AND EmployeeId IN(2, 4, 6) );
+
+-- *, / precedes +, -
+SELECT 10 + 2 * 3   -- 16
+
+SELECT (10 + 2) * 3 -- 36
+
+---------------------------------------------------------------------
+-- CASE Expression
+
+/*
+    is used when we have multiple of conditions that if it's true so
+    after THEN ''
+*/
+
+---------------------------------------------------------------------
+
+/*
+    from the products table show the following records: 
+    productid, productname, categoryid
+    Case categoryid == condition 1 -> 8 then do this '' 
+        WHEN 1 THEN 'Beverages'
+        WHEN 2 THEN 'Condiments'
+        WHEN 3 THEN 'Confections'
+        WHEN 4 THEN 'Dairy Products'
+        WHEN 5 THEN 'Grains/Cereals'
+        WHEN 6 THEN 'Meat/Poultry'
+        WHEN 7 THEN 'Produce'
+        WHEN 8 THEN 'Seafood'
+        ELSE 'Unknown Category'
+*/
+-- Simple
+SELECT productid, productname, categoryid,
+  CASE categoryid
+    WHEN 1 THEN 'Beverages'
+    WHEN 2 THEN 'Condiments'
+    WHEN 3 THEN 'Confections'
+    WHEN 4 THEN 'Dairy Products'
+    WHEN 5 THEN 'Grains/Cereals'
+    WHEN 6 THEN 'Meat/Poultry'
+    WHEN 7 THEN 'Produce'
+    WHEN 8 THEN 'Seafood'
+    ELSE 'Unknown Category'
+  END AS categoryname
+FROM Production.Product;
+
+-- Searched
+SELECT orderid, custid, val,
+  CASE 
+    WHEN val < 1000.00                   THEN 'Less than 1000'
+    WHEN val BETWEEN 1000.00 AND 3000.00 THEN 'Between 1000 and 3000'
+    WHEN val > 3000.00                   THEN 'More than 3000'
+    ELSE 'Unknown'
+  END AS valuecategory
+FROM Sales.OrderValues;
+
+---------------------------------------------------------------------
+-- NULLs
+---------------------------------------------------------------------
+
+/*
+    get the following records for customers that thier region is WA
+        CustomerId, CustomerCountry, CustomerRegion, CustomerCity
+    The N before the string literal 'WA' is used to indicate that it is a Unicode string.
+*/
+SELECT CustomerId, CustomerCountry, CustomerRegion, CustomerCity
+FROM Sales.Customer
+WHERE CustomerRegion = N'WA';
+
+/*
+    get the following records for customers that thier region is NOT WA
+        CustomerId, CustomerCountry, CustomerRegion, CustomerCity
+    The N before the string literal 'WA' is used to indicate that it is a Unicode string. 
+*/
+SELECT CustomerId, CustomerCountry, CustomerRegion, CustomerCity
+FROM Sales.Customer
+WHERE CustomerRegion != N'WA';
+
+/*
+    get the following records for customers that thier region is NULL
+        CustomerId, CustomerCountry, CustomerRegion, CustomerCity
+    The N before the string literal 'WA' is used to indicate that it is a Unicode string. 
+*/
+SELECT CustomerId, CustomerCountry, CustomerRegion, CustomerCity
+FROM Sales.Customer
+WHERE CustomerRegion = NULL;
+
+/*
+    get the following records for customers that thier region is NULL
+        CustomerId, CustomerCountry, CustomerRegion, CustomerCity
+    The N before the string literal 'WA' is used to indicate that it is a Unicode string. 
+*/
+SELECT CustomerId, CustomerCountry, CustomerRegion, CustomerCity
+FROM Sales.Customer
+WHERE CustomerRegion IS NULL;
+
+/*
+    get the following records for customers that thier region is NULL 
+    OR CustomerRegion is not WA
+        CustomerId, CustomerCountry, CustomerRegion, CustomerCity
+    The N before the string literal 'WA' is used to indicate that it is a Unicode string. 
+*/
+
+SELECT CustomerId, CustomerCountry, CustomerRegion, CustomerCity
+FROM Sales.Customer
+WHERE 
+    CustomerRegion IS NULL
+    OR 
+    CustomerRegion != N'WA';
+
+---------------------------------------------------------------------
+-- Collation
+---------------------------------------------------------------------
+
+/*
+    
+*/
+SELECT name, description
+FROM sys.fn_helpcollations();
+/*
+    query the following data 
+    EmployeeID, EmployeeFirstname, EmployeeLastname
+    FROM the Employee table
+    that EmployeeLastname matches the string davis
+    The N before the string literal 'WA' is used to indicate that it is a Unicode string.
+*/
+SELECT empid, firstname, lastname
+FROM HR.Employees
+WHERE lastname = N'davis';
+
+/*
+    query the following data 
+    EmployeeID, EmployeeFirstname, EmployeeLastname
+    FROM the Employee table
+    that EmployeeLastname matches the string davis in a case sensitive manner
+    using the Latin1_General_CS_AS collation.
+*/
+SELECT EmployeeID, EmployeeFirstname, EmployeeLastname
+FROM HumanResources.Employee
+WHERE EmployeeLastname COLLATE Latin1_General_CS_AS = N'davis';
+---------------------------------------------------------------------
+-- Operators and Functions
+---------------------------------------------------------------------
+
+-- Concatenation
+
+/*
+    show the Employee id and full name 
+*/
+SELECT EmployeeId, EmployeeFirstName + N' ' + EmployeeLastName AS fullname
+FROM HumanResources.Employee;
+
+/*
+    show the Employee id , country, region, city, and the full address as Location 
+*/
+SELECT CustomerId, CustomerCountry, CustomerRegion, CustomerCity,
+  CustomerCountry + N',' + CustomerRegion + N',' + CustomerCity AS location
+FROM Sales.Customer;
+/*
+    show the Employee id , country, region, city, and the full address as Location 
+    
+*/
+-- convert NULL to empty string
+SELECT CustomerId, CustomerCountry, CustomerRegion, CustomerCity,
+  CustomerCountry + COALESCE( N',' + CustomerRegion, N'') + N',' + CustomerCity AS location
+FROM Sales.Customer;
+
+/*
+    show the Employee id , country, region, city, and the full address as Location 
+*/
+-- using the CONCAT function
+SELECT custid, country, region, city,
+  CONCAT(country, N',' + region, N',' + city) AS location
+FROM Sales.Customers;
+
+-- Functions
+SELECT SUBSTRING('abcde', 1, 3); -- 'abc'
+
+SELECT RIGHT('abcde', 3); -- 'cde'
+
+SELECT LEN(N'abcde'); -- 5
+
+SELECT DATALENGTH(N'abcde'); -- 10
+
+SELECT CHARINDEX(' ','Itzik Ben-Gan'); -- 6
+
+SELECT PATINDEX('%[0-9]%', 'abcd123efgh'); -- 5
+
+SELECT REPLACE('1-a 2-b', '-', ':'); -- '1:a 2:b'
+
+SELECT empid, lastname,
+  LEN(lastname) - LEN(REPLACE(lastname, 'e', '')) AS numoccur
+FROM HR.Employees;
+
+SELECT REPLICATE('abc', 3); -- 'abcabcabc'
+
+SELECT supplierid,
+  RIGHT(REPLICATE('0', 9) + CAST(supplierid AS VARCHAR(10)),
+        10) AS strsupplierid
+FROM Production.Suppliers;
+
+SELECT STUFF('xyz', 2, 1, 'abc'); -- 'xabcz'
+
+SELECT UPPER('Itzik Ben-Gan'); -- 'ITZIK BEN-GAN'
+
+SELECT LOWER('Itzik Ben-Gan'); -- 'itzik ben-gan'
+
+SELECT RTRIM(LTRIM('   abc   ')); -- 'abc'
+
+SELECT FORMAT(1759, '0000000000'); -- '0000001759'
+
+-- COMPRESS
+SELECT COMPRESS(N'This is my cv. Imagine it was much longer.');
+
+/*
+INSERT INTO dbo.EmployeeCVs( empid, cv )
+  VALUES( @empid, COMPRESS(@cv) );
+*/
+
+-- DECOMPRESS
+SELECT DECOMPRESS(COMPRESS(N'This is my cv. Imagine it was much longer.'));
+
+SELECT
+  CAST(
+    DECOMPRESS(COMPRESS(N'This is my cv. Imagine it was much longer.'))
+      AS NVARCHAR(MAX));
+
+/*
+SELECT empid, CAST(DECOMPRESS(cv) AS NVARCHAR(MAX)) AS cv
+FROM dbo.EmployeeCVs;
+*/
+
+-- STRING_SPLIT
+SELECT CAST(value AS INT) AS myvalue
+FROM STRING_SPLIT('10248,10249,10250', ',') AS S;
+
+/*
+myvalue
+-----------
+10248
+10249
+10250
+*/

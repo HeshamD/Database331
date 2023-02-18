@@ -129,11 +129,7 @@ SELECT empid, firstname, lastname, country
 FROM HR.Employees
 ORDER BY hiredate;
 
-/*
-SELECT DISTINCT country
-FROM HR.Employees
-ORDER BY empid;
-*/
+
 
 ---------------------------------------------------------------------
 -- The TOP and OFFSET-FETCH Filters
@@ -178,8 +174,8 @@ OFFSET 50 ROWS FETCH NEXT 25 ROWS ONLY;
 SELECT orderid, custid, val,
   ROW_NUMBER() OVER(PARTITION BY custid
                     ORDER BY val) AS rownum
-FROM Sales.OrderValues
-ORDER BY custid, val;
+FROM Sales.OrderValues ov
+ORDER BY ov.custid, val;
 
 ---------------------------------------------------------------------
 -- Predicates and Operators
@@ -722,4 +718,4 @@ SELECT
   OBJECTPROPERTY(OBJECT_ID(N'Sales.Orders'), 'TableHasPrimaryKey');
 
 SELECT
-  COLUMNPROPERTY(OBJECT_ID(N'Sales.Orders'), N'shipcountry', 'AllowsNull'
+  COLUMNPROPERTY(OBJECT_ID(N'Sales.Orders'), N'shipcountry', 'AllowsNull');
