@@ -114,13 +114,10 @@ WHERE CustomerId NOT IN
    FROM Sales.[Order] AS O);
 
 -- Missing order IDs
-/*
-    select all : CustomerId, CustomerCompanyName
-    that customers that didn't place orders
-*/
 USE TSQLV4;
 DROP TABLE IF EXISTS dbo.Orders;
 CREATE TABLE dbo.Orders(orderid INT NOT NULL CONSTRAINT PK_Orders PRIMARY KEY);
+
 
 INSERT INTO dbo.Orders(orderid)
   SELECT orderid
@@ -142,6 +139,12 @@ DROP TABLE IF EXISTS dbo.Orders;
 
 -- Orders with maximum order ID for each customer
 -- Listing 4-1: Correlated Subquery
+/*
+    query: CustomerId, orderid, orderdate,EmployeeId
+    only for orders with the highest orderId for each customer
+    This is achieved by using a subquery to find the maximum orderid for each customer and then selecting only the rows where the orderid matches that maximum.
+
+*/
 USE Northwinds2022TSQLV7;
 
 SELECT CustomerId, orderid, orderdate, EmployeeId
@@ -151,6 +154,9 @@ WHERE orderid =
    FROM Sales.[Order] AS O2
    WHERE O2.CustomerId = O1.CustomerId);
 
+/*
+    SELECT the max value of the orderId where the customerId = 85
+*/
 SELECT MAX(O2.orderid)
 FROM Sales.[Order] AS O2
 WHERE O2.CustomerId = 85;
@@ -161,6 +167,11 @@ WHERE O2.CustomerId = 85;
 ---------------------------------------------------------------------
 
 -- Customers from Spain who placed orders
+/*
+    SELECT CustomerId, CustomerCountry
+    that customers's country is Spain
+    filter only includes rows where exists at least one order in the order sales
+*/
 SELECT CustomerId, CustomerCountry
 FROM Sales.Customer AS C
 WHERE CustomerCountry = N'Spain'
@@ -169,6 +180,11 @@ WHERE CustomerCountry = N'Spain'
      WHERE O.CustomerId = C.CustomerId);
 
 -- Customers from Spain who didn't place Orders
+/*
+    SELECT CustomerId, CustomerCountry
+    that customers's country is Spain
+    filter only includes rows where NOT exists at least one order in the order sales
+*/
 SELECT CustomerId, CustomerCompanyName
 FROM Sales.Customer AS C
 WHERE CustomerCompanyName = N'Spain'
@@ -184,31 +200,28 @@ WHERE CustomerCompanyName = N'Spain'
 ---------------------------------------------------------------------
 -- Returning "Previous" or "Next" Value
 ---------------------------------------------------------------------
+/*
+    query orderid, orderdate, EmployeeId, CustomerId,
+        with max order id from sales 
+        that order id is less than the current order id
+*/
 SELECT orderid, orderdate, EmployeeId, CustomerId,
   (SELECT MAX(O2.orderid)
    FROM Sales.[Order] AS O2
    WHERE O2.orderid < O1.orderid) AS prevorderid
 FROM Sales.[Order] AS O1;
 
+/*
+    query orderid, orderdate, EmployeeId, CustomerId,
+    with max order id from sales 
+        that order id is more than the current order id
+*/
 SELECT orderid, orderdate, EmployeeId, CustomerId,
   (SELECT MIN(O2.orderid)
    FROM Sales.[Order] AS O2
    WHERE O2.orderid > O1.orderid) AS nextorderid
 FROM Sales.[Order] AS O1;
 
----------------------------------------------------------------------
--- Running Aggregates
----------------------------------------------------------------------
-
-SELECT orderyear, qty
-FROM Sales.OrderTotalsByYear;
-
-SELECT orderyear, qty,
-  (SELECT SUM(O2.qty)
-   FROM Sales.OrderTotalsByYear AS O2
-   WHERE O2.orderyear <= O1.orderyear) AS runqty
-FROM Sales.OrderTotalsByYear AS O1
-ORDER BY orderyear;
 
 ---------------------------------------------------------------------
 -- Misbehaving Subqueries
@@ -220,6 +233,10 @@ ORDER BY orderyear;
 
 -- Customers who didn't place orders
 
+/*
+     CustomerId and CustomerCompanyName columns from the Sales.
+     Customer table for customers who have not placed any orders in the Sales.Order table. It uses the NOT IN operator to achieve this.
+*/
 -- Using NOT IN
 SELECT CustomerId, CustomerCompanyName
 FROM Sales.Customer
@@ -236,11 +253,21 @@ INSERT INTO Sales.[Order]
          N'abc', N'abc', N'abc');
 
 -- Following returns an empty set
+/*
+    query selects the CustomerId and CustomerCompanyName columns from the Sales.
+    Customer table for customers who have not placed any orders in the Sales.Order table. 
+    It uses a subquery with a NOT IN operator to achieve this.
+
+*/
 SELECT CustomerId, CustomerCompanyName
 FROM Sales.Customer
 WHERE CustomerId NOT IN(SELECT O.CustomerId
                     FROM Sales.[Order] AS O);
-
+/*
+    query selects CustomerId and CustomerCompanyName 
+    columns from the Customers table who have not placed any orders in the Sales.Order table. It uses a subquery with a NOT IN operator to achieve this
+    and excludin Null values
+*/
 -- Exclude NULLs explicitly
 SELECT CustomerId, CustomerCompanyName
 FROM Sales.Customer
@@ -248,6 +275,9 @@ WHERE CustomerId NOT IN(SELECT O.CustomerId
                     FROM Sales.[Order] AS O
                     WHERE O.CustomerId IS NOT NULL);
 
+/*
+    Same as above but using Not Exists
+*/
 -- Using NOT EXISTS
 SELECT CustomerId, CustomerCompanyName
 FROM Sales.Customer AS C
@@ -293,6 +323,11 @@ WHERE shipper_id IN
 GO
 
 -- The safe way using aliases, bug identified
+/*
+    query selects the shipper_id and companyname columns from the Sales.
+    MyShippers table for shippers that have been used by the customer with a CustomerId of 43 in the Sales.Order table. 
+    The query uses a subquery with a SELECT statement and a WHERE clause with a condition involving CustomerId and ShipperId.
+*/
 SELECT shipper_id, companyname
 FROM Sales.MyShippers
 WHERE shipper_id IN
